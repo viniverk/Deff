@@ -1,0 +1,191 @@
+﻿///$tab Main
+SET ThousandSep='.';
+SET DecimalSep=',';
+SET MoneyThousandSep='.';
+SET MoneyDecimalSep=',';
+SET MoneyFormat='R$#.##0,00;-R$#.##0,00';
+SET TimeFormat='hh:mm:ss';
+SET DateFormat='DD/MM/YYYY';
+SET TimestampFormat='DD/MM/YYYY hh:mm:ss[.fff]';
+SET FirstWeekDay=6;
+SET BrokenWeeks=1;
+SET ReferenceDay=0;
+SET FirstMonthOfYear=1;
+SET CollationLocale='pt-BR';
+SET MonthNames='jan;fev;mar;abr;mai;jun;jul;ago;set;out;nov;dez';
+SET LongMonthNames='janeiro;fevereiro;março;abril;maio;junho;julho;agosto;setembro;outubro;novembro;dezembro';
+SET DayNames='seg;ter;qua;qui;sex;sáb;dom';
+SET LongDayNames='segunda-feira;terça-feira;quarta-feira;quinta-feira;sexta-feira;sábado;domingo';
+
+/*LOAD League, 
+     Date, 
+     Time, 
+     Home, 
+     Away, 
+     Odd_H_Back, 
+     Odd_H_Lay, 
+     Odd_A_Back, 
+     Odd_A_Lay, 
+     Odd_D_Back, 
+     Odd_D_Lay, 
+     Odd_Under25_FT_Back, 
+     Odd_Under25_FT_Lay, 
+     Odd_Over25_FT_Back, 
+     Odd_Over25_FT_Lay, 
+     Odd_BTTS_Yes_Back, 
+     Odd_BTTS_Yes_Lay, 
+     Odd_BTTS_No_Back, 
+     Odd_BTTS_No_Lay, 
+     Odd_CS_0x0_Back, 
+     Odd_CS_0x0_Lay, 
+     Odd_CS_0x1_Back, 
+     Odd_CS_0x1_Lay, 
+     Odd_CS_0x2_Back, 
+     Odd_CS_0x2_Lay, 
+     Odd_CS_0x3_Back, 
+     Odd_CS_0x3_Lay, 
+     Odd_CS_1x0_Back, 
+     Odd_CS_1x0_Lay, 
+     Odd_CS_1x1_Back, 
+     Odd_CS_1x1_Lay, 
+     Odd_CS_1x2_Back, 
+     Odd_CS_1x2_Lay, 
+     Odd_CS_1x3_Back, 
+     Odd_CS_1x3_Lay, 
+     Odd_CS_2x0_Back, 
+     Odd_CS_2x0_Lay, 
+     Odd_CS_2x1_Back, 
+     Odd_CS_2x1_Lay, 
+     Odd_CS_2x2_Back, 
+     Odd_CS_2x2_Lay, 
+     Odd_CS_2x3_Back, 
+     Odd_CS_2x3_Lay, 
+     Odd_CS_3x0_Back, 
+     Odd_CS_3x0_Lay, 
+     Odd_CS_3x1_Back, 
+     Odd_CS_3x1_Lay, 
+     Odd_CS_3x2_Back, 
+     Odd_CS_3x2_Lay, 
+     Odd_CS_3x3_Back, 
+     Odd_CS_3x3_Lay, 
+     Odd_CS_Goleada_H_Back, 
+     Odd_CS_Goleada_H_Lay, 
+     Odd_CS_Goleada_A_Back, 
+     Odd_CS_Goleada_A_Lay, 
+     Odd_CS_Goleada_D_Back, 
+     Odd_CS_Goleada_D_Lay, 
+     ID_Evento, 
+     ID_Home, 
+     ID_Away, 
+     ID_Draw, 
+     IDMercado_Match_Odds, 
+     [IDMercado_Over/Under_25_Goals], 
+     IDMercado_Both_teams_to_Score, 
+     IDMercado_Correct_Score, 
+     Odd_Under05_HT_Back, 
+     Odd_Under05_HT_Lay, 
+     Odd_Over05_HT_Back, 
+     Odd_Over05_HT_Lay, 
+     Odd_Under05_FT_Back, 
+     Odd_Under05_FT_Lay, 
+     Odd_Over05_FT_Back, 
+     Odd_Over05_FT_Lay, 
+     Odd_Under15_FT_Back, 
+     Odd_Under15_FT_Lay, 
+     Odd_Over15_FT_Back, 
+     Odd_Over15_FT_Lay, 
+     Double_Chance_Home_or_Draw_Back, 
+     Double_Chance_Home_or_Draw_Lay, 
+     Double_Chance_Draw_or_Away_Back, 
+     Double_Chance_Draw_or_Away_Lay, 
+     Double_Chance_Home_or_Away_Back, 
+     Double_Chance_Home_or_Away_Lay, 
+     IDMercado_Double_Chance, 
+     IDMercado_First_Half_Goals_05, 
+     [IDMercado_Over/Under_05_Goals], 
+     [IDMercado_Over/Under_15_Goals]
+FROM
+[C:\Users\vinic\OneDrive\Documentos\GitHub\YouTube\Jogos_do_Dia\Betfair\Jogos_do_Dia_Betfair_Back_Lay_2024-07-27.csv]
+(txt, codepage is 28591, embedded labels, delimiter is ',', msq);
+
+*/
+
+
+
+
+
+LET vDataFinal = num(today());
+
+LET vDataInicial = num(MakeDate(2022,05,10)) -1;
+
+
+Calendario:
+LOAD Distinct
+   SK_DATA as DATA_GERAL,
+   YEAR(SK_DATA) as ANO_GERAL,
+   MONTH(SK_DATA) AS MES_GERAL,
+   CEIL(Month(SK_DATA)/3)&'º Tri/' & YEAR(SK_DATA) AS TRIMESTRE_GERAL,  
+   CEIL(Month(SK_DATA)/3)&'º Tri' AS TRIMESTRE_RED_GERAL,
+   MONTHNAME(SK_DATA) AS PERIODO_GERAL_NAME,
+   MONTHSTART(SK_DATA) AS PERIODO_GERAL_1,
+   MID(SK_DATA,7,4) & MID(SK_DATA,4,2)  AS PERIODO_GERAL;
+LOAD date($(vDataInicial) + IterNo())   AS SK_DATA
+AUTOGENERATE 1
+WHILE $(vDataInicial) + IterNo() <= $(vDataFinal);
+
+//filtros para graficos
+SET vHome = Home;
+SET vAway = Away;
+
+
+///$tab Main 4
+SOCCER_BASE:
+LOAD %Chave, 
+     Date, 
+     DATA_GERAL, 
+     League, 
+     Hora, 
+     Home, 
+     Away, 
+     X, 
+     Odd_H, 
+     Odd_D, 
+     Odd_A, 
+     Odd_Over25, 
+     CS_0x0, 
+     CS_0x1, 
+     CS_1x0, 
+     CS_1x1, 
+     CS_2x2, 
+     CS_2x3, 
+     CS_Goleada_H, 
+     CS_Goleada_A, 
+     FaixaOddGoleadaHome, 
+     FaixaOddOver25, 
+     FaixaOddGoleadaAway, 
+     FaixaOddHome, 
+     FaixaOddAway, 
+     Metodo, 
+     Metodo_Goleada, 
+     Metrica, 
+     Metrica2x2, 
+     Metodo_Metrica, 
+     Placar, 
+     Goleada, 
+     Goals_H, 
+     Goals_A, 
+     Resultado, 
+     Goals_FT
+FROM
+[C:\Users\vinic\OneDrive\Documentos\GitHub\Deff\BI_SOCCER\QVD\BISOCCERBASE.QVD]
+(qvd);
+
+
+
+
+
+///$tab Main 6
+
+
+///$tab Main 5
+	

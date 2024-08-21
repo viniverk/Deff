@@ -1,0 +1,453 @@
+﻿///$tab Main
+SET ThousandSep='.';
+SET DecimalSep=',';
+SET MoneyThousandSep='.';
+SET MoneyDecimalSep=',';
+SET MoneyFormat='R$#.##0,00;-R$#.##0,00';
+SET TimeFormat='hh:mm:ss';
+SET DateFormat='DD/MM/YYYY';
+SET TimestampFormat='DD/MM/YYYY hh:mm:ss[.fff]';
+SET FirstWeekDay=6;
+SET BrokenWeeks=1;
+SET ReferenceDay=0;
+SET FirstMonthOfYear=1;
+SET CollationLocale='pt-BR';
+SET MonthNames='jan;fev;mar;abr;mai;jun;jul;ago;set;out;nov;dez';
+SET LongMonthNames='janeiro;fevereiro;março;abril;maio;junho;julho;agosto;setembro;outubro;novembro;dezembro';
+SET DayNames='seg;ter;qua;qui;sex;sáb;dom';
+SET LongDayNames='segunda-feira;terça-feira;quarta-feira;quinta-feira;sexta-feira;sábado;domingo';
+
+/*LOAD League, 
+     Date, 
+     Time, 
+     Home, 
+     Away, 
+     Odd_H_Back, 
+     Odd_H_Lay, 
+     Odd_A_Back, 
+     Odd_A_Lay, 
+     Odd_D_Back, 
+     Odd_D_Lay, 
+     Odd_Under25_FT_Back, 
+     Odd_Under25_FT_Lay, 
+     Odd_Over25_FT_Back, 
+     Odd_Over25_FT_Lay, 
+     Odd_BTTS_Yes_Back, 
+     Odd_BTTS_Yes_Lay, 
+     Odd_BTTS_No_Back, 
+     Odd_BTTS_No_Lay, 
+     Odd_CS_0x0_Back, 
+     Odd_CS_0x0_Lay, 
+     Odd_CS_0x1_Back, 
+     Odd_CS_0x1_Lay, 
+     Odd_CS_0x2_Back, 
+     Odd_CS_0x2_Lay, 
+     Odd_CS_0x3_Back, 
+     Odd_CS_0x3_Lay, 
+     Odd_CS_1x0_Back, 
+     Odd_CS_1x0_Lay, 
+     Odd_CS_1x1_Back, 
+     Odd_CS_1x1_Lay, 
+     Odd_CS_1x2_Back, 
+     Odd_CS_1x2_Lay, 
+     Odd_CS_1x3_Back, 
+     Odd_CS_1x3_Lay, 
+     Odd_CS_2x0_Back, 
+     Odd_CS_2x0_Lay, 
+     Odd_CS_2x1_Back, 
+     Odd_CS_2x1_Lay, 
+     Odd_CS_2x2_Back, 
+     Odd_CS_2x2_Lay, 
+     Odd_CS_2x3_Back, 
+     Odd_CS_2x3_Lay, 
+     Odd_CS_3x0_Back, 
+     Odd_CS_3x0_Lay, 
+     Odd_CS_3x1_Back, 
+     Odd_CS_3x1_Lay, 
+     Odd_CS_3x2_Back, 
+     Odd_CS_3x2_Lay, 
+     Odd_CS_3x3_Back, 
+     Odd_CS_3x3_Lay, 
+     Odd_CS_Goleada_H_Back, 
+     Odd_CS_Goleada_H_Lay, 
+     Odd_CS_Goleada_A_Back, 
+     Odd_CS_Goleada_A_Lay, 
+     Odd_CS_Goleada_D_Back, 
+     Odd_CS_Goleada_D_Lay, 
+     ID_Evento, 
+     ID_Home, 
+     ID_Away, 
+     ID_Draw, 
+     IDMercado_Match_Odds, 
+     [IDMercado_Over/Under_25_Goals], 
+     IDMercado_Both_teams_to_Score, 
+     IDMercado_Correct_Score, 
+     Odd_Under05_HT_Back, 
+     Odd_Under05_HT_Lay, 
+     Odd_Over05_HT_Back, 
+     Odd_Over05_HT_Lay, 
+     Odd_Under05_FT_Back, 
+     Odd_Under05_FT_Lay, 
+     Odd_Over05_FT_Back, 
+     Odd_Over05_FT_Lay, 
+     Odd_Under15_FT_Back, 
+     Odd_Under15_FT_Lay, 
+     Odd_Over15_FT_Back, 
+     Odd_Over15_FT_Lay, 
+     Double_Chance_Home_or_Draw_Back, 
+     Double_Chance_Home_or_Draw_Lay, 
+     Double_Chance_Draw_or_Away_Back, 
+     Double_Chance_Draw_or_Away_Lay, 
+     Double_Chance_Home_or_Away_Back, 
+     Double_Chance_Home_or_Away_Lay, 
+     IDMercado_Double_Chance, 
+     IDMercado_First_Half_Goals_05, 
+     [IDMercado_Over/Under_05_Goals], 
+     [IDMercado_Over/Under_15_Goals]
+FROM
+[C:\Users\vinic\OneDrive\Documentos\GitHub\YouTube\Jogos_do_Dia\Betfair\Jogos_do_Dia_Betfair_Back_Lay_2024-07-27.csv]
+(txt, codepage is 28591, embedded labels, delimiter is ',', msq);
+
+*/
+
+
+
+
+
+LET vDataFinal = num(today());
+
+LET vDataInicial = num(MakeDate(2022,05,10)) -1;
+
+
+Calendario:
+LOAD Distinct
+   SK_DATA as DATA_GERAL,
+   YEAR(SK_DATA) as ANO_GERAL,
+   MONTH(SK_DATA) AS MES_GERAL,
+   CEIL(Month(SK_DATA)/3)&'º Tri/' & YEAR(SK_DATA) AS TRIMESTRE_GERAL,  
+   CEIL(Month(SK_DATA)/3)&'º Tri' AS TRIMESTRE_RED_GERAL,
+   MONTHNAME(SK_DATA) AS PERIODO_GERAL_NAME,
+   MONTHSTART(SK_DATA) AS PERIODO_GERAL_1,
+   MID(SK_DATA,7,4) & MID(SK_DATA,4,2)  AS PERIODO_GERAL;
+LOAD date($(vDataInicial) + IterNo())   AS SK_DATA
+AUTOGENERATE 1
+WHILE $(vDataInicial) + IterNo() <= $(vDataFinal);
+
+//filtros para graficos
+SET vHome = Home;
+SET vAway = Away;
+
+
+///$tab Main 4
+Planejamento:
+LOAD  Date,
+     date(Date,'DD/MM/YYYY') as DATA_GERAL,
+          League,
+     Time as Hora, 
+    Home, 
+	 Away, 
+     'x' as X,
+     Replace(Odd_H_Back, '.', ',') as Odd_H,
+     Replace(Odd_D_Back, '.', ',') as Odd_D,
+     Replace(Odd_A_Back, '.', ',') as Odd_A,
+	 Replace(Odd_Over25_FT_Back, '.', ',') as Odd_Over25,//Odd Over 2,5FT
+     //Odd_Under25, 
+     //Odd_BTTS_Yes, 
+    // Odd_BTTS_No, 
+    Replace(Odd_CS_0x0_Lay, '.', ',') as CS_0x0,
+     Replace(Odd_CS_0x1_Lay, '.', ',') as CS_0x1,
+     Replace(Odd_CS_1x0_Lay, '.', ',') as CS_1x0,
+     Replace(Odd_CS_1x1_Lay, '.', ',') as CS_1x1,
+     Replace(Odd_CS_2x2_Lay, '.', ',') as CS_2x2,
+     Replace(Odd_CS_2x3_Lay, '.', ',') as CS_2x3,
+     Replace(Odd_CS_Goleada_H_Lay, '.', ',') as CS_Goleada_H,
+   	 Replace(Odd_CS_Goleada_A_Lay, '.', ',') as CS_Goleada_A
+ 
+FROM
+[C:\Users\vinic\OneDrive\Documentos\GitHub\YouTube\Jogos_do_Dia\Betfair\Jogos_do_Dia_Betfair_Back_Lay_2024*.csv]
+(txt, codepage is 28591, embedded labels, delimiter is ',', msq)
+where Date >= $(vDataInicial);
+
+
+
+TESTE:
+NoConcatenate
+LOAD
+    *,
+   Date&Home&Away as %Chave,
+if(CS_Goleada_H>'1,01' and CS_Goleada_H<'1,5','1,02 à 1,5',
+    If(CS_Goleada_H>'1,5' and CS_Goleada_H<='2','1,51 à 2',
+     If(CS_Goleada_H>'2' and CS_Goleada_H<='5','2,01 à 5',
+     If(CS_Goleada_H>'5,01' and CS_Goleada_H<='10','5,01 à 10',
+     If(CS_Goleada_H>'10,01' and CS_Goleada_H<='15','10,01 à 15',
+     If(CS_Goleada_H>'15,01' and CS_Goleada_H<='999','15,01 à 999',
+    )))))) as FaixaOddGoleadaHome,
+   if(Odd_Over25>'1,01' and Odd_Over25<'2','1,02 à 2',
+    If(Odd_Over25>'2' and Odd_Over25<='2,3','2 à 2,3',
+     If(Odd_Over25>'2,3' and Odd_Over25<='3','2,3 à 3',
+     If(Odd_Over25>'3' and Odd_Over25<='5','3 à 5',
+     If(Odd_Over25>'5' and Odd_Over25<='999','5 à 999',
+    ))))) as FaixaOddOver25,
+    if(CS_Goleada_A>'1,01' and CS_Goleada_A<'1,5','1,02 à 1,5',
+    If(CS_Goleada_A>'1,5' and CS_Goleada_A<='2','1,51 à 2',
+     If(CS_Goleada_A>'2' and CS_Goleada_A<='5','2,01 à 5',
+     If(CS_Goleada_A>'5,01' and CS_Goleada_A<='10','5,01 à 10',
+     If(CS_Goleada_A>'10,01' and CS_Goleada_A<='15','10,01 à 15',
+    If(CS_Goleada_A>'15,01' and CS_Goleada_A<='999','15,01 à 999',
+    )))))) as FaixaOddGoleadaAway,
+if(Odd_H>'1,01' and Odd_H<'1,5','1,02 à 1,5',
+    If(Odd_H>'1,5' and Odd_H<='2','1,51 à 2',
+     If(Odd_H>'2' and Odd_H<='5','2,01 à 5',
+     If(Odd_H>'5,01' and Odd_H<='10','5,01 à 10',
+     If(Odd_H>'10,01' and Odd_H<='999','10,01 à 999',
+    ))))) as FaixaOddHome,
+    if(Odd_A>'1,01' and Odd_A<'1,5','1,02 à 1,5',
+    If(Odd_A>'1,5' and Odd_A<='2','1,51 à 2',
+     If(Odd_A>'2' and Odd_A<='5','2,01 à 5',
+     If(Odd_A>'5,01' and Odd_A<='10','5,01 à 10',
+     If(Odd_A>'10,01' and Odd_A<='999','10,01 à 999',
+    ))))) as FaixaOddAway,
+      	 if(Odd_H >= '1,02' and Odd_H <= '1,67' and CS_Goleada_H >= '1,02' and CS_Goleada_H <= '9','Lay 0x1',
+      	 if(Odd_A <= '3,99' AND Odd_A >= '1,65' and Odd_H <= '3,99' and Odd_H >= '1,65' and Odd_Over25 >= '1,06' and Odd_Over25 <='3,5' AND CS_1x0 >= '22' AND CS_1x0 <= '970','Lay 0x1_Teste',
+      	 if(Odd_H >= '1,15' and Odd_H <= '1,8' and CS_Goleada_H >= '1,4' and CS_Goleada_H <= '25' and  Odd_D > '3','Lay 2x2',
+     if(Odd_A >= '1,02' and Odd_A <= '1,55' and CS_Goleada_A >= '1,02' and CS_Goleada_A <= '8,8','Lay 1x0',
+      if(CS_1x1 >= '10' and Odd_Over25 <= '1,6' and CS_Goleada_A >= '1,02' and CS_Goleada_A <= '50','Lay 0x0', //novo método
+ 'Outros Métodos'))))) as Metodo, //1.0
+          if(Odd_H >= '1,6' and Odd_H <= '2,2' and CS_Goleada_H >= '1,02' and CS_Goleada_H <= '10,5','Lay Goleada Visitante',
+               if(Odd_A >= '1,5' and Odd_A <= '2,2' and CS_Goleada_A >= '1,02' and CS_Goleada_A <= '30', 'Lay Goleada Casa', 'Outros Métodos')) as Metodo_Goleada,
+         (1 / (if(Odd_H > '1,01', Num(Odd_H, '#,##0.00'))) * if(CS_Goleada_A > '1,01', Num(CS_Goleada_A, '#,##0.00'))) 
+    - (1 / (if(Odd_A > '1,01', Num(Odd_A, '#,##0.00'))) * if(CS_Goleada_H > '1,01', Num(CS_Goleada_H, '#,##0.00'))) as Metrica,
+    ((Odd_H * CS_Goleada_H) / 100) * ((Odd_A * CS_Goleada_A) / 100) as Metrica2x2
+
+
+Resident Planejamento;
+
+Drop Table Planejamento;
+
+BASE_BETFAIR:
+NoConcatenate
+LOAD *,
+if(Metrica > 595, 'Lay 0x1',
+    if(Metrica <= -388, 'Lay 1x0',
+       if(Metrica2x2 >= '4' and CS_2x2 > '1,01' and CS_2x2 < 980, 'Lay 2x2'
+    )
+)) as Metodo_Metrica //2.0
+Resident TESTE;
+
+Drop Table TESTE;
+
+
+
+///$tab Main 5
+
+
+
+
+
+//PLANILHA EXTRAÍDA FUTPYTHON
+Tmp_Base:
+LOAD Date,//&Home&Away as %Chave,
+	date(Date,'DD/MM/YYYY') as DATA_GERAL,
+	League, 
+//	 Time as Hora, 
+//	Home,  //Time da Casa
+	If(Home = 'Keski-Uusimaa', 'PKK-U',
+If(Home = 'Atl. San Luis', 'Atletico San Luis',
+If(Home = 'Seraing', 'Seraing Utd',
+If(Home = 'Magdeburg', 'FC Magdeburg',
+If(Home = 'B. Monchengladbach', 'Mgladbach',
+If(Home = 'Burton', 'Burton Albion',
+If(Home = 'Dorking', 'Dorking Wanderers',
+If(Home = 'Dordrecht', 'FC Dordrecht',
+If(Home = 'Roda', 'Roda JC',
+If(Home = 'Vaduz', 'FC Vaduz',
+If(Home = 'Lierse K.', 'Lierse',
+If(Home = 'St. Liege U23', 'SL 16 FC',
+If(Home = 'Palmeiras', 'SE Palmeiras',
+If(Home = 'Baden', 'Fc Baden',
+If(Home = 'St. Truiden', 'Sint Truiden',
+If(Home = 'Qingdao West Coast', 'Qingdao Youth Island',
+If(Home = 'ABC', 'ABC RN',
+If(Home = 'Monza', 'AC Monza',
+If(Home = 'Petrolul', 'ACS Petrolul 52',
+If(Home = 'Sepsi Sf. Gheorghe', 'ACS Sepsi OSK',
+If(Home = 'Al Ahly', 'Al Ahly Cairo',
+If(Home = 'Al Ittihad', 'Al Ittihad (EGY)',
+If(Home = 'Arab Contractors', 'Al Mokawloon',
+If(Home = 'Kashiwa Reysol', 'Kashiwa',
+If(Home = 'Zalaegerszegi', 'Zalaegerszeg',
+If(Home = 'St. Gallen', 'St Gallen',
+If(Home = 'FC Porto', 'Porto',
+If(Home = 'Horsens', 'AC Horsens',
+If(Home = 'B.93', 'B93 Copenhagen',
+If(Home = 'Munich 1860', '1860 Munich',
+If(Home = 'A.C. Trento S.C.S.D.', 'Trento',
+If(Home = 'Torres', 'Sassari Torres',
+If(Home = 'Arzignano', 'Arzignanochiampo',
+If(Home = 'Pineto', 'ASD Pineto Calcio',
+If(Home = 'Virtus Francavilla', 'US Virtus Francavilla Calcio',
+If(Home = 'Argentinos Jrs', 'Argentinos Juniors',
+If(Home = 'Union de Santa Fe', 'Union Santa Fe',
+If(Home = 'Central Cordoba', 'Central Cordoba (SdE)',
+If(Home = 'Talleres Cordoba', 'Talleres',
+If(Home = 'Ind. Rivadavia', 'Independiente Rivadavia',
+If(Home = 'Sarmiento Junin', 'Sarmiento de Junin',
+If(Home = 'Newells Old Boys', 'Newells',
+If(Home = 'Platense', 'CA Platense',
+If(Home = 'Dep. Riestra', 'Deportivo Riestra',
+If(Home = 'Gimnasia L.P.', 'Gimnasia La Plata',
+If(Home = 'Atl. Tucuman', 'Atl Tucuman',
+If(Home = 'Estudiantes L.P.', 'Estudiantes',
+If(Home = 'Independiente', 'CA Independiente',
+If(Home = 'Vasco', 'Vasco da Gama',
+If(Home = 'Flamengo RJ', 'Flamengo',
+If(Home = 'Cruzeiro', 'Cruzeiro MG',
+If(Home = 'Botafogo RJ', 'Botafogo',
+If(Home = 'Atletico-MG', 'Atletico MG',
+If(Home = 'Fortaleza', 'Fortaleza EC',
+If(Home = 'Bragantino', 'Bragantino SP',
+If(Home = 'Vitoria', 'EC Vitoria Salvador',
+Home)))))))))))))))))))))))))))))))))))))))))))))))))))))))) as Home,
+/////////////////////////////////////
+	//Away,  //Time Visitante
+	If(Away = 'Palmeiras', 'SE Palmeiras',
+If(Away = 'Lierse K.', 'Lierse',
+If(Away = 'St. Liege U23', 'SL 16 FC',
+If(Away = 'Vaduz', 'FC Vaduz',
+If(Away = 'Roda', 'Roda JC',
+If(Away = 'Dordrecht', 'FC Dordrecht',
+If(Away = 'Dorking', 'Dorking Wanderers',
+If(Away = 'Burton', 'Burton Albion',
+If(Away = 'B. Monchengladbach', 'Mgladbach',
+If(Away = 'Magdeburg', 'FC Magdeburg',
+If(Away = 'Seraing', 'Seraing Utd',
+If(Away = 'Atl. San Luis', 'Atletico San Luis',
+If(Away = 'Keski-Uusimaa', 'PKK-U',
+If(Away = 'Jazz Pori', 'FC Jazz',
+If(Away = 'Baden', 'Fc Baden',
+If(Away = 'St. Truiden', 'Sint Truiden',
+If(Away = 'Qingdao West Coast', 'Qingdao Youth Island',
+If(Away = 'ABC', 'ABC RN',
+If(Away = 'Monza', 'AC Monza',
+If(Away = 'Petrolul', 'ACS Petrolul 52',
+If(Away = 'Sepsi Sf. Gheorghe', 'ACS Sepsi OSK',
+If(Away = 'Al Ahly', 'Al Ahly Cairo',
+If(Away = 'Al Ittihad', 'Al Ittihad (EGY)',
+If(Away = 'Arab Contractors', 'Al Mokawloon',
+If(Away = 'Kashiwa Reysol', 'Kashiwa',
+If(Away = 'Zalaegerszegi', 'Zalaegerszeg',
+If(Away = 'St. Gallen', 'St Gallen',
+If(Away = 'FC Porto', 'Porto',
+If(Away = 'Horsens', 'AC Horsens',
+If(Away = 'B.93', 'B93 Copenhagen',
+If(Away = 'Munich 1860', '1860 Munich',
+If(Away = 'A.C. Trento S.C.S.D.', 'Trento',
+If(Away = 'Torres', 'Sassari Torres',
+If(Away = 'Arzignano', 'Arzignanochiampo',
+If(Away = 'Pineto', 'ASD Pineto Calcio',
+If(Away = 'Virtus Francavilla', 'US Virtus Francavilla Calcio',
+If(Away = 'Argentinos Jrs', 'Argentinos Juniors',
+If(Away = 'Union de Santa Fe', 'Union Santa Fe',
+If(Away = 'Central Cordoba', 'Central Cordoba (SdE)',
+If(Away = 'Talleres Cordoba', 'Talleres',
+If(Away = 'Ind. Rivadavia', 'Independiente Rivadavia',
+If(Away = 'Sarmiento Junin', 'Sarmiento de Junin',
+If(Away = 'Newells Old Boys', 'Newells',
+If(Away = 'Platense', 'CA Platense',
+If(Away = 'Dep. Riestra', 'Deportivo Riestra',
+If(Away = 'Gimnasia L.P.', 'Gimnasia La Plata',
+If(Away = 'Atl. Tucuman', 'Atl Tucuman',
+If(Away = 'Estudiantes L.P.', 'Estudiantes',
+If(Away = 'Independiente', 'CA Independiente',
+If(Away = 'Vasco', 'Vasco da Gama',
+If(Away = 'Flamengo RJ', 'Flamengo',
+If(Away = 'Cruzeiro', 'Cruzeiro MG',
+If(Away = 'Botafogo RJ', 'Botafogo',
+If(Away = 'Atletico-MG', 'Atletico MG',
+If(Away = 'Fortaleza', 'Fortaleza EC',
+If(Away = 'Bragantino', 'Bragantino SP',
+If(Away = 'Vitoria', 'EC Vitoria Salvador',
+Away))))))))))))))))))))))))))))))))))))))))))))))))))))))))) as Away,
+	////////////////////////
+	Goals_H, //Gols Casa
+	Goals_A, //Gols Visitante
+	if(Goals_H + Goals_A > 2, 'Over 2,5', 'Under 2,5'),
+	if(Goals_H + Goals_A > 0, 'Over 0,5','Under 0,5') as Goals_FT,
+	Goals_H & 'x' & Goals_A as Placar, // Combinação dos campos no novo formato
+// Floor(Goals_H) & 'x' & Floor(Goals_A) as Placar, // Combinação dos campos no novo formato
+	IF(Goals_H > 3 AND Goals_H > Goals_A, 'Goleada Casa',
+   IF(Goals_A > 3 AND Goals_A > Goals_H, 'Goleada Visitante','Outros')) as Goleada,
+	'x' as X, // adicionar o X nos placares.
+	  If(Goals_H = Goals_A, 'Empate',
+	     If(Goals_H > Goals_A, 'Vitória Casa',
+	        If(Goals_A > Goals_H, 'Vitória Visitante'))) As Resultado/*,     
+	Replace(Odd_H_Back, '.', ',') as Odd_H,//Odd abertura Casa
+	Replace(Odd_D_Back, '.', ',') as Odd_D,//Odd empate
+	Replace(Odd_A_Back, '.', ',') as Odd_A,//Odd abertura Visitante
+	Replace(Odd_Over25_FT_Back, '.', ',') as Odd_Over25//Odd Over 2,5FT*/
+
+FROM
+[C:\Users\vinic\OneDrive\Documentos\GitHub\YouTube\Bases_de_Dados\Betfair\Base_de_Dados_Betfair_Exchange_Back_Lay.csv]
+(txt, codepage is 28591, embedded labels, delimiter is ',', msq)
+where Date >= $(vDataInicial);
+
+Tmp_Bases:
+LOAD // %Chave,
+	Date&Home&Away as %Chave,
+	 Placar,
+	 Goleada,
+	 Goals_H,
+	 Goals_A,
+	 Resultado,
+	 Goals_FT
+	Resident Tmp_Base; 
+drop table Tmp_Base;	
+
+	PARTIDAS:
+NoConcatenate //Inclusão de Partidas Faltantes
+LOAD date(Date,'DD/MM/YYYY') as Date,
+	 Home,
+	 Away, 
+	 Goals_H & 'x' & Goals_A as Placar, // Combinação dos campos no novo formato	
+	 	IF(Goals_H > 3 AND Goals_H > Goals_A, 'Goleada Casa',
+   IF(Goals_A > 3 AND Goals_A > Goals_H, 'Goleada Visitante','Outros')) as Goleada,
+     Goals_H, 
+     Goals_A,
+     	  If(Goals_H = Goals_A, 'Empate',
+	     If(Goals_H > Goals_A, 'Vitória Casa',
+	        If(Goals_A > Goals_H, 'Vitória Visitante'))) As Resultado ,
+	        	if(Goals_H + Goals_A > 2, 'Over 2,5', 'Under 2,5'),
+	if(Goals_H + Goals_A > 0, 'Over 0,5','Under 0,5') as Goals_FT
+	 
+FROM
+[C:\Users\vinic\OneDrive\Documentos\GitHub\Deff\BI_SOCCER\Database\Correção Resultados.xlsx]
+(ooxml, embedded labels, table is Planilha1); 
+
+
+concatenate(Tmp_Bases)
+LOAD // %Chave,
+	Date&Home&Away as %Chave,
+	 Placar,
+	Goleada,
+	 Goals_H,
+	 Goals_A,
+	 Resultado,
+	 Goals_FT
+	Resident PARTIDAS; 
+	
+drop table PARTIDAS;
+
+Left Join(BASE_BETFAIR)
+LOAD *
+Resident Tmp_Bases;
+	
+drop table Tmp_Bases;
+
+
+
+
+STORE BASE_BETFAIR INTO [C:\Users\vinic\OneDrive\Documentos\GitHub\Deff\BI_SOCCER\QVD\BISOCCERBASE.QVD] (QVD); //BKP FEIO 18/08/2024
+drop table BASE_BETFAIR;
+EXIT SCRIPT;
+
+
